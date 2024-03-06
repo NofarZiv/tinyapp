@@ -4,7 +4,10 @@ const PORT = 8080;
 
 app.set("view engine", "ejs");
 
-function generateRandomString() {}
+
+function generateRandomString() {
+  return Math.random().toString(36).slice(2).substring(0, 6);
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -35,8 +38,9 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL; 
+  res.redirect(`/urls/${id}`) 
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -44,6 +48,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
