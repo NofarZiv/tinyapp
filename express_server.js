@@ -54,8 +54,18 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id]; 
+  delete urlDatabase["req.params.id"]; 
   res.redirect(`/urls`); 
+});
+
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect(`/urls`); 
+});
+
+app.post("/urls/:id/edit", (req, res) => {
+  const vars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.render("urls_show", vars); 
 });
 
 app.listen(PORT, () => {
