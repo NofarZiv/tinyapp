@@ -19,6 +19,8 @@ const urlDatabase = {
 
 app.use(express.urlencoded({ extended: true }));
 
+let name = "username";
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -84,8 +86,12 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let name = "username";
   res.cookie(name, req.body.username); 
+  res.redirect(`/urls`); 
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie(name); 
   res.redirect(`/urls`); 
 });
 
