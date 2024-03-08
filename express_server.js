@@ -12,6 +12,15 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2).substring(0, 6);
 };
 
+function userLookup(email) {
+  for (let key in users) {
+    if (email === users[key].email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -114,6 +123,12 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    return res.status(400).send("Email or password can not be empty");
+  } 
+  if (userLookup(req.body.email)) {
+    return res.status(400).send("Email already exists");
+  } 
   let userId = generateRandomString();
   users[userId] = {
     id: userId,
@@ -121,7 +136,7 @@ app.post("/register", (req, res) => {
     password: req.body.password
   }
   res.cookie("user_id", userId);
-  res.redirect(`/urls`); 
+  res.redirect(`/urls`);
 });
 
 app.listen(PORT, () => {
