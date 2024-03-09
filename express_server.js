@@ -15,7 +15,7 @@ function generateRandomString() {
 function userLookup(email) {
   for (let key in users) {
     if (email === users[key].email) {
-      return true;
+      return users[key];
     }
   }
   return false;
@@ -41,7 +41,6 @@ const users = {
 
 app.use(express.urlencoded({ extended: true }));
 
-let name = "username";
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -108,13 +107,20 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie(name, req.body.username); 
-  res.redirect(`/urls`); 
+  if (userLookup(req.body.email) === false) {
+    return res.status(403).send("Email cannot be found");
+  }
+  if (userLookup(req.body.email).password !== req.body.password) {
+    return res.status(403).send("Password incorrect");
+  }
+  let userId = userLookup(req.body.email).id
+  res.cookie("user_id", userId);
+  res.redirect("/urls"); 
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie(name); 
-  res.redirect(`/urls`); 
+  res.clearCookie("user_id"); 
+  res.redirect(`/login`); 
 });
 
 app.get("/register", (req, res) => {
