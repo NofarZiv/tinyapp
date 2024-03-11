@@ -1,5 +1,6 @@
 const express = require("express");
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
+const getUserByEmail  = require('./helpers');
 const bcrypt = require("bcryptjs");
 const app = express()
 app.use(cookieSession({
@@ -17,14 +18,6 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2).substring(0, 6);
 };
 
-function userLookup(email) {
-  for (let key in users) {
-    if (email === users[key].email) {
-      return users[key];
-    }
-  }
-  return false;
-};
 
 function urlsForUser(id) {
   let userUrlsObj = {};
@@ -160,13 +153,14 @@ app.post("/urls/:id", (req, res) => {
 
 
 app.post("/login", (req, res) => {
-  if (userLookup(req.body.email) === false) {
+  let userEmail = getUserByEmail(req.body.email, users);
+  if (userEmail === undefined) {
     return res.status(403).send("Email cannot be found");
   }
-  if (!bcrypt.compareSync(req.body.password, userLookup(req.body.email).password)) {
+  if (!bcrypt.compareSync(req.body.password, userEmail.password)) {
     return res.status(403).send("Incorrect password");
   }
-  let userId = userLookup(req.body.email).id
+  let userId = userEmail.id
   req.session.user_id = userId;
   res.redirect("/urls"); 
 });
@@ -190,7 +184,7 @@ app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     return res.status(400).send("Email or password can not be empty");
   } 
-  if (userLookup(req.body.email)) {
+  if (getUserByEmail(req.body.email, users)) {
     return res.status(400).send("Email already exists");
   } 
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
