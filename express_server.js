@@ -54,10 +54,14 @@ const users = {
 };
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session.user_id) {
+    return res.redirect("/urls");
+  }
+  res.status(302).redirect("/login");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -104,8 +108,11 @@ app.get("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
     return res.status(403).send("<html><body>Please log in to see the short url.</body></html>");
   }
-  if (!urlDatabase[req.params.id] || urlDatabase[req.params.id].userID !== req.session.user_id) {
-    return res.status(404).send("<html><body>URL not found or you don't have permission to access this page.</body></html>");
+  if (!urlDatabase[req.params.id]) {
+    return res.status(404).send("<html><body>URL not found.</body></html>");
+  }
+  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
+    return res.status(403).send("<html><body>You do not have premission to delete this URL.</body></html>");
   }
   const templateVars = {
     user_id: users[req.session.user_id], 
