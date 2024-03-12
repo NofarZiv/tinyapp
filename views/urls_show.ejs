@@ -25,22 +25,28 @@
      <div class="card text-center">
         <div class="card-header">
           <h2 class="card-title">Edit</h2>
-         
-          <form class="form-inline" action="/urls/<%= id %>" method="POST">
-              <label for="longURL">New URL:</label>
-              <input
-                class="form-control"
-                type="text"
-                name="longURL"
-                placeholder="http://"
-                style="width: 250px; margin: 0.5em"
-              />
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-          </form>
-        </div>
-        
+
+          <div class="container h-100">
+            <div class="row h-100 justify-content-center align-items-center">
+                <div class="col-10 col-md-8 col-lg-6">
+            <form class="form-inline" action="/urls/<%= id %>" method="POST">
+            <label for="longURL">New URL:</label>
+            <input
+              class="form-control"
+              type="text"
+              name="longURL"
+              placeholder="http://"
+              style="width: 300px; margin: 0.5em"
+            />
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
+</div>
+    </div>
+            
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
