@@ -21,18 +21,18 @@
     <% if (user_id) { %>
       <form class="form-inline" action="/logout" method="POST">
         <label for="user_id.email">Logged in as: <%= user_id.email %>!</label>
-        <button type="submit" class="btn btn-primary">Logout</button>
+        <button type="submit" class="btn btn-success">Logout</button>
       </form>
       <% } else { %>
        <div>
       <form class="form-inline" action="/login" method="GET">
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-success">Login</button>
       </div>
     </form>
       &nbsp;&nbsp;&nbsp;&nbsp;
     
       <form class="form-inline" action="/register" method="GET">
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-success">Register</button>
       </div>
     </form>
   </div> 
