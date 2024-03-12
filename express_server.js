@@ -1,33 +1,22 @@
 const express = require("express");
 const cookieSession = require('cookie-session');
-const getUserByEmail  = require('./helpers');
+const { getUserByEmail, urlsForUser, generateRandomString } = require('./helpers');
 const bcrypt = require("bcryptjs");
-const app = express()
-app.use(cookieSession({
-  name: 'session',
-  keys: ["this is a secret key"],
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
-const PORT = 8080; 
 
+const app = express();
+
+const PORT = 8080;
 
 app.set("view engine", "ejs");
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["this is a secret key"],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
-function generateRandomString() {
-  return Math.random().toString(36).slice(2).substring(0, 6);
-};
-
-
-function urlsForUser(id) {
-  let userUrlsObj = {};
-  for (let key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      userUrlsObj[key] = urlDatabase[key].longURL;
-    }
-  }
-  return userUrlsObj;
-};
 
 const urlDatabase = {
   b6UTxQ: {
@@ -53,16 +42,6 @@ const users = {
   },
 };
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-
-app.get("/", (req, res) => {
-  if (req.session.user_id) {
-    return res.redirect("/urls");
-  }
-  res.status(302).redirect("/login");
-});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -72,12 +51,19 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get("/", (req, res) => {
+  if (req.session.user_id) {
+    return res.redirect("/urls");
+  }
+  res.status(302).redirect("/login");
+});
+
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     return res.status(403).send("<html><body>You need to be logged in or to register to see the URLs.</body></html>");
   }
-  let userUrls = urlsForUser(req.session.user_id);
-  const templateVars = { 
+  let userUrls = urlsForUser(req.session.user_id, urlDatabase);
+  const templateVars = {
     user_id: users[req.session.user_id],
     urls: userUrls
   };
@@ -100,8 +86,8 @@ app.post("/urls", (req, res) => {
   urlDatabase[id] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
-  }; 
-  res.redirect(`/urls/${id}`) 
+  };
+  res.redirect(`/urls/${id}`);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -115,8 +101,8 @@ app.get("/urls/:id", (req, res) => {
     return res.status(403).send("<html><body>You do not have premission to delete this URL.</body></html>");
   }
   const templateVars = {
-    user_id: users[req.session.user_id], 
-    id: req.params.id, 
+    user_id: users[req.session.user_id],
+    id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL
   };
   res.render("urls_show", templateVars);
@@ -140,8 +126,8 @@ app.post("/urls/:id/delete", (req, res) => {
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     return res.status(404).send("<html><body>You do not have premission to delete this URL.</body></html>");
   }
-  delete urlDatabase[req.params.id]; 
-  res.redirect(`/urls`); 
+  delete urlDatabase[req.params.id];
+  res.redirect(`/urls`);
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -155,7 +141,7 @@ app.post("/urls/:id", (req, res) => {
     return res.status(404).send("<html><body>You do not have premission to edit this URL.</body></html>");
   }
   urlDatabase[req.params.id].longURL = req.body.longURL;
-  res.redirect(`/urls`); 
+  res.redirect(`/urls`);
 });
 
 
@@ -167,14 +153,14 @@ app.post("/login", (req, res) => {
   if (!bcrypt.compareSync(req.body.password, userEmail.password)) {
     return res.status(403).send("Incorrect password");
   }
-  let userId = userEmail.id
+  let userId = userEmail.id;
   req.session.user_id = userId;
-  res.redirect("/urls"); 
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  req.session = null; 
-  res.redirect(`/login`); 
+  req.session = null;
+  res.redirect(`/login`);
 });
 
 app.get("/register", (req, res) => {
@@ -190,17 +176,17 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     return res.status(400).send("Email or password can not be empty");
-  } 
+  }
   if (getUserByEmail(req.body.email, users)) {
     return res.status(400).send("Email already exists");
-  } 
+  }
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   let userId = generateRandomString();
   users[userId] = {
     id: userId,
     email: req.body.email,
     password: hashedPassword
-  }
+  };
   req.session.user_id = userId;
   res.redirect(`/urls`);
 });
